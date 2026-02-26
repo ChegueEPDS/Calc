@@ -12,7 +12,7 @@ on:
 
 env:
   AZURE_FUNCTIONAPP_PACKAGE_PATH: '.' # set this to the path to your web app project, defaults to the repository root
-  PYTHON_VERSION: '3.12' # set this to the python version to use (supports 3.6, 3.7, 3.8)
+  PYTHON_VERSION: '3.11' # match Azure Functions Python runtime
 
 jobs:
   build:
@@ -54,7 +54,7 @@ jobs:
           ls -la app || true
           echo ".python_packages contents (top):"
           ls -la .python_packages/lib/site-packages | head -n 50 || true
-          zip -r release.zip . -x "venv/*" "__pycache__/*" "*.pyc" ".git/*" ".github/*"
+          zip -r release.zip . -x "venv/*" "__pycache__/*" "*/__pycache__/*" "*.pyc" ".git/*" ".github/*"
           echo "Zip contents (top):"
           unzip -l release.zip | head -n 50
 
