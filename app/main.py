@@ -233,10 +233,20 @@ def _token_from_label(label: str) -> str:
 
 
 def _is_ambient(token: str, label: str) -> bool:
-    if str(token or "").upper() == "T12":
-        return True
+    """
+    Identify the true ambient reference point.
+
+    IMPORTANT: Many measurement labels include the word "outside" (e.g. T10/T11),
+    but only T12 is the ambient temperature measurement point in these workbooks.
+    """
+    # Allow override for workbooks that use a different token than T12.
+    # Example: MEAS_AMBIENT_TOKEN="T12" or "T0,T12"
+    allowed = [x.strip().upper() for x in str(os.getenv("MEAS_AMBIENT_TOKEN", "T12")).split(",") if x.strip()]
+    t = str(token or "").strip().upper()
+    if t:
+        return t in set(allowed)
     s = str(label or "").lower()
-    return "ambient" in s or "outside" in s
+    return "ambient" in s
 
 
 def _is_temp_row(label: str, unit: str) -> bool:
@@ -999,8 +1009,6 @@ def measurement_eval(req: MeasurementEvalRequest):
                     label = df.iloc[r, 0] if df.shape[1] > 0 else None
                     unit = df.iloc[r, 1] if df.shape[1] > 1 else None
                     token = _token_from_label(label)
-                    if not token:
-                        continue
                     if not _is_temp_row(str(label or ""), str(unit or "")):
                         continue
                     if _is_ambient(token, str(label or "")):
