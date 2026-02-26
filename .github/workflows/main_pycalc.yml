@@ -29,13 +29,20 @@ jobs:
         with:
           python-version: ${{ env.PYTHON_VERSION }}
 
-      - name: Create and start virtual environment
+      - name: Install dependencies (vendor into .python_packages)
         run: |
-          python -m venv venv
-          source venv/bin/activate
+          python -m pip install --upgrade pip
+          mkdir -p .python_packages/lib/site-packages
+          pip install -r requirements.txt --target=".python_packages/lib/site-packages"
 
-      - name: Install dependencies
-        run: pip install -r requirements.txt
+      - name: Sanity import check
+        run: |
+          python - <<'PY'
+          import sys
+          sys.path.insert(0, ".python_packages/lib/site-packages")
+          import fastapi, pandas, openpyxl  # noqa: F401
+          print("Imports OK")
+          PY
 
       # Optional: Add step to run tests here
 
@@ -45,6 +52,8 @@ jobs:
           ls -la
           echo "App contents:"
           ls -la app || true
+          echo ".python_packages contents (top):"
+          ls -la .python_packages/lib/site-packages | head -n 50 || true
           zip -r release.zip . -x "venv/*" "__pycache__/*" "*.pyc" ".git/*" ".github/*"
           echo "Zip contents (top):"
           unzip -l release.zip | head -n 50
