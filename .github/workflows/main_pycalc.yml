@@ -40,7 +40,14 @@ jobs:
       # Optional: Add step to run tests here
 
       - name: Zip artifact for deployment
-        run: zip release.zip ./* -r
+        run: |
+          echo "Repo contents:"
+          ls -la
+          echo "App contents:"
+          ls -la app || true
+          zip -r release.zip . -x "venv/*" "__pycache__/*" "*.pyc" ".git/*" ".github/*"
+          echo "Zip contents (top):"
+          unzip -l release.zip | head -n 50
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
